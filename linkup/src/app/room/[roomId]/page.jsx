@@ -16,10 +16,11 @@ export default function Home() {
 
     socket.on( "user-joined", (data) => {
 
+      console.log(data);
       //destructuring the incoming data
-      const { username, socketId } = data;
+      // const { username, socketId } = data;
       //logging the details in the console ( this can be done on the screen too )
-      console.log( ` ${username} joined the room with socket ID: ${socketId} ` );
+      // console.log( ` ${username} joined the room with socket ID: ${socketId} ` );
       // console.log(data);
     } )
 
@@ -46,68 +47,62 @@ export default function Home() {
 
 
   // --------------- web rtc wala code saara --------------
-  const servers = {
-      iceServers: [
-          {
-              urls: ['stun:stun1.1.google.com:19302', 'stun:stun2.google.com:19302']
-          }
-      ]
-  };
+  // const servers = {
+  //     iceServers: [
+  //         {
+  //             urls: ['stun:stun1.1.google.com:19302', 'stun:stun2.google.com:19302']
+  //         }
+  //     ]
+  // };
 
-  let newMemberJoined = async (memberID) => {
-    console.log("A new user joined the channel:", memberID);
-  }
+  // useEffect( () => {
 
-  useEffect( () => {
+  //   //RTC Peer connection is a constructor that gives various methods and also connects local to remote 
+  //   let connection = new RTCPeerConnection(servers);
+  //   // console.log(connection);
 
-    //RTC Peer connection is a constructor that gives various methods and also connects local to remote 
-    let connection = new RTCPeerConnection(servers);
-    // console.log(connection);
-
-    connection.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log('New ICE Candidate:', event.candidate);
-      }
-    };
+  //   connection.onicecandidate = (event) => {
+  //     if (event.candidate) {
+  //       console.log('New ICE Candidate:', event.candidate);
+  //     }
+  //   };
 
 
-    //adding tracks of the first user so that the second user can get the video and audio of the first user easily
-    if (firstUserRef && firstUserRef.current) {
+  //   //adding tracks of the first user so that the second user can get the video and audio of the first user easily
+  //   if (firstUserRef && firstUserRef.current) {
       
-      //getting the video and audio tracks
-      const tracks = firstUserRef.current.getVideoTracks();
+  //     //getting the video and audio tracks
+  //     const tracks = firstUserRef.current.getVideoTracks();
       
-      //looping through all the tracks and adding them
-      tracks.forEach(track => {
-          connection.addTrack(track, firstUserRef.current);
-      });
-    } 
+  //     //looping through all the tracks and adding them
+  //     tracks.forEach(track => {
+  //         connection.addTrack(track, firstUserRef.current);
+  //     });
+  //   } 
 
-    //adding the tracks of the second user
-    connection.ontrack = (e) => {
-      e.streams[0].getTracks().forEach((track) => {
-          secondUserRef.addTrack(track);
-          console.log('second user');
-      })
-    }
+  //   //adding the tracks of the second user
+  //   connection.ontrack = (e) => {
+  //     e.streams[0].getTracks().forEach((track) => {
+  //         secondUserRef.addTrack(track);
+  //         console.log('second user');
+  //     })
+  //   }
 
-    //creating an offer
-    let firstOffer = connection.createOffer()
+  //   //creating an offer
+  //   let firstOffer = connection.createOffer()
    
-      .then( offer => {
-        connection.setLocalDescription(firstOffer);
-        console.log("Offer:", offer);
-      } )
-      .catch( error => {
-        console.log( "error while logging the offer:", error ); 
-      } )
+  //     .then( offer => {
+  //       connection.setLocalDescription(firstOffer);
+  //       console.log("Offer:", offer);
+  //     } )
+  //     .catch( error => {
+  //       console.log( "error while logging the offer:", error ); 
+  //     } )
 
-    //passing the offer to the local description of the established connection
+  //   //passing the offer to the local description of the established connection
     
 
-  }, [] )
-
-  
+  // }, [] )
 
   return (
     <>

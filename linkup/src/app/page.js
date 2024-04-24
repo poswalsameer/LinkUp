@@ -7,6 +7,7 @@ import { useSocket } from "../../context/SocketProvider";
 import Link from "next/link";
 
 
+
 export default function Home({router}) {
 
   const [username, setUsername] = useState('');
@@ -36,10 +37,6 @@ export default function Home({router}) {
     } else{
       console.log("Fields were empty");
     }
-
-    
-
-
 
 
     //whenever a user click this join room button, a new socket is created, the user is that socket
@@ -76,10 +73,7 @@ export default function Home({router}) {
         onClick={joinClicked}
         >
           <Link href={`/room/${roomId}`}>Join Room</Link>
-          </button>
-
-        {/* <Home /> */}
- 
+        </button>
 
     </div>
   );
