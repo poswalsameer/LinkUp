@@ -38,6 +38,11 @@ io.on('connection', (socket) => {
         //allowing the other users to join the room
         socket.join(roomNumber);
     })
+
+    socket.on('make-call', ({to, offer}) => {
+      // console.log(offer);
+      io.to(to).emit( 'incoming-call', { from: socket.id, offer } );
+    })
 })
 
 const port = 8000;
