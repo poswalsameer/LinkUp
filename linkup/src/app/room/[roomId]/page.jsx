@@ -1,8 +1,9 @@
 'use client'
 
-import {useState, useRef, useEffect} from 'react';
+import {useState, useRef, useEffect, useCallback} from 'react';
 import Webcam from 'react-webcam';
-import { useSocket } from '../../../../context/SocketProvider';
+import { SocketProvider, useSocket } from '../../../../context/SocketProvider';
+import rtcConnection from '../../webRTC/rtcConnection';
 
 
 
@@ -11,20 +12,38 @@ export default function Home() {
   // ------------------- socket.io wala code saara ------------------------
   const socket = useSocket();
 
+  //socket ID of the user entering by accepting the call
+  const [remoteId, setRemoteId] = useState(null);
+
+  const callClicked = useCallback( async () => {
+
+      const offer = await rtcConnection.makeOffer();
+      // console.log(offer);
+      socket.emit( 'make-call', { to: remoteId, offer } )
+
+  }, [remoteId, socket])
+
   //this useEffect is for the other users who are entering the room with the room code
   useEffect( () => {
 
     socket.on( "user-joined", (data) => {
 
+      const { username, socketId } = data;
+      setRemoteId(socketId);
       console.log(data);
       //destructuring the incoming data
       // const { username, socketId } = data;
-      //logging the details in the console ( this can be done on the screen too )
+      //logging the details in the console ( this can be done on the screen toko )
       // console.log( ` ${username} joined the room with socket ID: ${socketId} ` );
       // console.log(data);
     } )
 
+    socket.on( 'incoming-call', ({from, offer}) => {
+        console.log(offer);
+    })
+
   }, [socket] ) //adding socket as a dependancy
+
 
 
 
@@ -124,6 +143,8 @@ export default function Home() {
             </div>
 
         </div> 
+
+        <button className='h-10 w-32 my-10 bg-blue-600 rounded-lg' onClick={callClicked}>Make Call</button>
 
         <button className=" my-8 h-9 w-32 text-white bg-purple-800 font-bold rounded-md" onClick={allowUserVideo}>First User</button>    
 
