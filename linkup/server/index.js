@@ -19,18 +19,20 @@ const userToSocketMapping = new Map();
 //creating mapping between every socket id to their user
 const socketToUserMapping = new Map();
 
+// makeOffer();
+
 //this creates a socket connection 
 io.on('connection', (socket) => {
     console.log("A new user joined: ", socket.id);
 
     //this listens for the socket event named "join-room" and logs the message 
-    socket.on('join-room', (data) => {
+    socket.on('join-room', async (data) => {
         console.log(data);
         const {username, roomNumber} = data;
         userToSocketMapping.set(username, socket.id);
         socketToUserMapping.set(socket.id, username);
 
-        //whenever someone enters the same room number, this cod emits the username and socket id of that user
+        //whenever someone enters the same room number, this cod emits the username and socket id of that user 
         io.to(roomNumber).emit( "user-joined", { username, socketId: socket.id } );
 
         //allowing the other users to join the room
