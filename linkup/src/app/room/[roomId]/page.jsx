@@ -1,7 +1,9 @@
 'use client'
 
+import VideoScreen from '@/app/components/VideoScreen';
 import {useState, useRef, useEffect, useCallback} from 'react';
 import Webcam from 'react-webcam';
+import ReactPlayer from 'react-player'
 import { SocketProvider, useSocket } from '../../../../context/SocketProvider';
 import rtcConnection from '../../webRTC/rtcConnection';
 
@@ -13,6 +15,9 @@ export default function Home() {
   const socket = useSocket();
 
   //socket ID of the user entering by accepting the call
+  const [userStream, setUserStream] = useState();
+  const [userVideo, setUserVideo] = useState(false);
+  const [secondUserVideo, setSecondUserVideo] = useState(false);
   const [remoteId, setRemoteId] = useState(null);
 
   const callClicked = useCallback( async () => {
@@ -23,8 +28,15 @@ export default function Home() {
 
   }, [remoteId, socket])
 
+  
   //this useEffect is for the other users who are entering the room with the room code
+  let video;
   useEffect( () => {
+
+    video = navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+
+    setUserStream(video);
+    
 
     socket.on( "user-joined", (data) => {
 
@@ -38,8 +50,15 @@ export default function Home() {
       // console.log(data);
     } )
 
-    socket.on( 'incoming-call', ({from, offer}) => {
+    socket.on( 'incoming-call', async ({from, offer}) => {
         console.log(offer);
+
+        const remoteUserVideo = navigator.mediaDevices.getUserMedia({ audio:true, video:false })
+        setUserStream(remoteUserVideo);
+
+        const answer = await rtcConnection.makeAnswer(offer);
+
+        socket.emit( 'call-accepted', { to: from, answer } );
     })
 
   }, [socket] ) //adding socket as a dependancy
@@ -48,107 +67,45 @@ export default function Home() {
 
 
 
-  // ---------------- state and core react wala code ---------------------
-  const [userVideo, setUserVideo] = useState(false);
-  const [secondUserVideo, setSecondUserVideo] = useState(false);  
+  // ---------------- state and core react wala code ---------------------  
 
   const allowUserVideo = () => {
     setUserVideo(!userVideo);
+    // if( userVideo ){
+    //   setUserStream(video);
+    // }
+    // else{
+    //   setUserVideo( null );
+    // }
   }
-
   const allowSecondUserVideo = () => {
     setSecondUserVideo(!secondUserVideo);
   }
 
-  //reference to the users
-  const firstUserRef = useRef(null);
-  const secondUserRef = useRef(null);
-
-
-  // --------------- web rtc wala code saara --------------
-  // const servers = {
-  //     iceServers: [
-  //         {
-  //             urls: ['stun:stun1.1.google.com:19302', 'stun:stun2.google.com:19302']
-  //         }
-  //     ]
-  // };
-
-  // useEffect( () => {
-
-  //   //RTC Peer connection is a constructor that gives various methods and also connects local to remote 
-  //   let connection = new RTCPeerConnection(servers);
-  //   // console.log(connection);
-
-  //   connection.onicecandidate = (event) => {
-  //     if (event.candidate) {
-  //       console.log('New ICE Candidate:', event.candidate);
-  //     }
-  //   };
-
-
-  //   //adding tracks of the first user so that the second user can get the video and audio of the first user easily
-  //   if (firstUserRef && firstUserRef.current) {
-      
-  //     //getting the video and audio tracks
-  //     const tracks = firstUserRef.current.getVideoTracks();
-      
-  //     //looping through all the tracks and adding them
-  //     tracks.forEach(track => {
-  //         connection.addTrack(track, firstUserRef.current);
-  //     });
-  //   } 
-
-  //   //adding the tracks of the second user
-  //   connection.ontrack = (e) => {
-  //     e.streams[0].getTracks().forEach((track) => {
-  //         secondUserRef.addTrack(track);
-  //         console.log('second user');
-  //     })
-  //   }
-
-  //   //creating an offer
-  //   let firstOffer = connection.createOffer()
-   
-  //     .then( offer => {
-  //       connection.setLocalDescription(firstOffer);
-  //       console.log("Offer:", offer);
-  //     } )
-  //     .catch( error => {
-  //       console.log( "error while logging the offer:", error ); 
-  //     } )
-
-  //   //passing the offer to the local description of the established connection
-    
-
-  // }, [] )
-
   return (
     <>
 
-      <div className="h-screen w-full flex flex-col justify-center items-center">
+      <div className="h-full w-full flex flex-col justify-center items-center">
 
         <div className="h-screen w-full flex flex-row justify-center items-center">
 
-            <div className="flex flex-col justify-center items-center bg-slate-950 h-[90%] w-[48%] rounded-xl mx-2 border-2 border-white" >
-
-                { userVideo  ? ( <Webcam ref={firstUserRef} audio={false} videoConstraints={userVideo} className="h-full w-full rounded-xl"/> ) : ( <p className="font-extrabold text-3xl">Your Video is OFF</p> ) }
-
+            <div className="flex flex-col justify-center items-center bg-slate-950 h-[60%] w-[40%] rounded-xl mx-2 border-2 border-white" > 
+              < VideoScreen audio={false} video={userVideo} />
             </div>
 
-            <div className="flex flex-col justify-center items-center bg-slate-950 h-[90%] w-[48%] rounded-xl mx-2 border-2 border-white" >
-
-            { secondUserVideo  ? ( <Webcam ref={secondUserRef} audio={false} videoConstraints={secondUserVideo} className="h-full w-full rounded-xl"/> ) : ( <p className="font-extrabold text-3xl">Your Video is OFF</p> ) }
-
-            </div>
+            { remoteId ? ( <div className="flex flex-col justify-center items-center bg-slate-950 h-[60%] w-[40%] rounded-xl mx-2 border-2 border-white" > 
+              { secondUserVideo  ? ( < VideoScreen audio={false} video={secondUserVideo} /> ) : ( <></> ) }
+            </div> ) : ( <></> ) }            
 
         </div> 
 
-        <button className='h-10 w-32 my-10 bg-blue-600 rounded-lg' onClick={callClicked}>Make Call</button>
+        <div className='flex justify-center items-center gap-x-5'>
 
-        <button className=" my-8 h-9 w-32 text-white bg-purple-800 font-bold rounded-md" onClick={allowUserVideo}>First User</button>    
+          <button className='h-10 w-32 my-10 bg-blue-600 rounded-lg' onClick={callClicked}>Make Call</button>
+          <button className=" my-8 h-9 w-32 text-white bg-purple-800 font-bold rounded-md" onClick={allowUserVideo}>Switch Video</button>    
+          {/* <button className=" my-3 h-9 w-32 text-white bg-purple-800 font-bold rounded-md" onClick={allowSecondUserVideo}>Second User</button>   */}
 
-        <button className=" my-3 h-9 w-32 text-white bg-purple-800 font-bold rounded-md" onClick={allowSecondUserVideo}>Second User</button>   
+        </div> 
 
       </div>
     

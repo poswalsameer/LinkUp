@@ -1,8 +1,6 @@
 'use client'
 
-import Image from "next/image";
 import { useState } from "react";
-import { io } from "socket.io-client";
 import { useSocket } from "../../context/SocketProvider";
 import Link from "next/link";
 
