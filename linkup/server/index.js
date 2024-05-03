@@ -43,6 +43,10 @@ io.on('connection', (socket) => {
       // console.log(offer);
       io.to(to).emit( 'incoming-call', { from: socket.id, offer } );
     })
+
+    socket.on( 'call-accepted', () => {
+
+    })
 })
 
 const port = 8000;

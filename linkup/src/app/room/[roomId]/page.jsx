@@ -64,6 +64,9 @@ export default function Home() {
   }, [socket] ) //adding socket as a dependancy
 
 
+    // the thing is, ye jo react webcam use krra hu, isse issue aara hai, 
+    // to muje mediastream hi use krna by using a video tag, and states ke through video on off krni hogi
+    // next sitting me jab bhi bethunga, to react-webcam hatana hai and normal video tag ka use krke video box banana hai
 
 
 
